@@ -61,24 +61,16 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: 'requirements.txt'
 
       # ---------- 3. 装依赖（含 Chromium）----------
       - name: 安装依赖
         run: |
           python -m pip install --upgrade pip
-          pip install requests playwright
+          pip install -r requirements.txt
           playwright install --with-deps chromium
 
-      # ---------- 4. 恢复历史数据缓存（可选）----------
-      - name: 恢复上次数据
-        uses: actions/cache/restore@v4
-        with:
-          path: data/gd_power.sqlite
-          key: gd-db-${{ github.run_number }}
-          restore-keys: |
-            gd-db-
-
-      # ---------- 5. 执行采集 ----------
+      # ---------- 4. 执行采集 ----------
       - name: 采集数据
         run: |
           TASK="${{ github.event.inputs.task || 'all' }}"
@@ -87,7 +79,7 @@ jobs:
           echo "--- 产出文件 ---"
           ls -la output/ || true
 
-      # ---------- 6. 存档运行日志（失败时可用于排查）----------
+      # ---------- 5. 存档运行日志（失败时可用于排查）----------
       - name: 上传日志
         if: always()
         uses: actions/upload-artifact@v4
@@ -99,7 +91,7 @@ jobs:
           retention-days: 30
           if-no-files-found: ignore
 
-      # ---------- 7. 把采集结果提交回仓库 ----------
+      # ---------- 6. 把采集结果提交回仓库 ----------
       - name: 提交数据
         run: |
           git config user.name  "github-actions[bot]"
@@ -111,11 +103,3 @@ jobs:
             git commit -m "数据更新 $(TZ=Asia/Shanghai date +'%Y-%m-%d %H:%M')"
             git push
           fi
-
-      # ---------- 8. 保存数据库缓存 ----------
-      - name: 保存数据库
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: data/gd_power.sqlite
-          key: gd-db-${{ github.run_number }}

@@ -1,0 +1,5 @@
+# 广东电价采集器依赖
+# 本地安装：pip install -r requirements.txt
+
+requests>=2.31.0
+playwright>=1.40.0
